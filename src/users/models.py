@@ -8,6 +8,7 @@ from src.models import Base
 
 if TYPE_CHECKING:
     from src.order.models import Order
+    from src.videoprocessor.models import UserDataSet
 
 
 class User(Base):
@@ -27,5 +28,9 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(server_default='false', default=False)
 
     orders_user: Mapped[list['Order']] = relationship(
+        back_populates='user'
+    )
+
+    datasets: Mapped[list['UserDataSet']] = relationship(
         back_populates='user'
     )
