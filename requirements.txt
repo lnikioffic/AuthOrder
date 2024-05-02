@@ -4,7 +4,6 @@ asyncpg
 sqlalchemy[asyncio]
 pydantic-settings
 python-multipart
-fastapi-users[sqlalchemy]
 pyjwt[crypto]
 uvicorn[standard]
 bcrypt

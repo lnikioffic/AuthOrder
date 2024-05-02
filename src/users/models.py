@@ -5,10 +5,8 @@ from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models import Base
-
-if TYPE_CHECKING:
-    from src.order.models import Order
-    from src.videoprocessor.models import UserDataSet
+from src.order.models import Order
+from src.videoprocessor.models import UserDataSet
 
 
 class User(Base):

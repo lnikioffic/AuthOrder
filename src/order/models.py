@@ -5,9 +5,9 @@ from sqlalchemy import String, func, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models import Base
+from src.product.models import Product
 
 if TYPE_CHECKING:
-    from src.product.models import Product
     from src.users.models import User
 
 
