@@ -17,6 +17,7 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String(50))
     fromat: Mapped[str] = mapped_column(String(50))
     price: Mapped[int] = mapped_column(default=1, server_default='1')
+    description: Mapped[str] = mapped_column(String(100))
 
     orders: Mapped[list['Order']] = relationship (
         secondary='product_order',

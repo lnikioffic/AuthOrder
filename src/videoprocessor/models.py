@@ -16,6 +16,7 @@ class UserDataSet(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
     fromat: Mapped[str] = mapped_column(String(50))
+    description: Mapped[str] = mapped_column(String(100))
 
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
 

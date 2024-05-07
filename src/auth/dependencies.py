@@ -1,12 +1,15 @@
 from typing import Annotated
+from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 
+from src.auth.token import create_access_token, create_refresh_token, TOKEN_TYPE_FIELD, ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE
 from src.users.dependencies import GetUser
 from src.users.schemas import UserAuth, UserRead
 from src.auth.schemas import TokenInfo
 from src.auth import utils as auth_utils
+from src.auth.config import auth_jwt
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/singin')
 
@@ -22,23 +25,52 @@ async def get_current_token_payload(token: Annotated[str, Depends(oauth2_scheme)
     return payload
 
 
-# def get_current_auth_user(
-#     payload: dict = Depends(get_current_token_payload),
-# ) -> UserRead:
-#     username: str | None = payload.get("sub")
-#     if user := users_db.get(username):
-#         return user
-#     raise HTTPException(
-#         status_code=status.HTTP_401_UNAUTHORIZED,
-#         detail="token invalid (user not found)",
-#     )
+async def validate_token_type(
+    payload: dict,
+    token_type: str,
+) -> bool:
+    current_token_type = payload.get(TOKEN_TYPE_FIELD)
+    if current_token_type == token_type:
+        return True
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=f"invalid token type {current_token_type!r} expected {token_type!r}",
+    )
 
 
-def get_current_active_auth_user(
-    user: Annotated[dict, Depends(get_current_token_payload)]
-) -> dict:
+async def get_current_auth_user(
+    get_user: Annotated[GetUser, Depends()],
+    payload: dict = Depends(get_current_token_payload),
+) -> UserRead:
+    await validate_token_type(payload=payload, token_type=ACCESS_TOKEN_TYPE)
+    id: str | None = payload.get("sub")
+    if user := await get_user.get_user_for_id(int(id)):
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="token invalid (user not found)",
+    )
+
+
+async def get_current_auth_user_for_refresh(
+    get_user: Annotated[GetUser, Depends()],
+    payload: dict = Depends(get_current_token_payload),
+) -> UserRead:
+    await validate_token_type(payload=payload, token_type=REFRESH_TOKEN_TYPE)
+    id: str | None = payload.get("sub")
+    if user := await get_user.get_user_for_id(int(id)):
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="token invalid (user not found)",
+    )
+
+
+async def get_current_active_auth_user(
+    user: Annotated[UserRead, Depends(get_current_auth_user)]
+) -> UserRead:
     
-    if user['sub']:
+    if user.is_active:
         return user
     
     raise HTTPException(
@@ -48,7 +80,7 @@ def get_current_active_auth_user(
 
 
 async def validate_auth_user(
-        user: Annotated[GetUser, Depends()],
+        get_user: Annotated[GetUser, Depends()],
         data_form: Annotated[OAuth2PasswordRequestForm, Depends()]
     ) -> TokenInfo:
     unauthed_exc = HTTPException(
@@ -56,7 +88,7 @@ async def validate_auth_user(
         detail="invalid username or password",
         headers={'WWW-Authenticate': 'Bearer'},
     )
-    user: UserAuth = await user.get_user_for_auth(data_form.username)
+    user: UserAuth = await get_user.get_user_for_username(data_form.username)
     if not user:
         raise unauthed_exc
     
@@ -70,18 +102,20 @@ async def validate_auth_user(
 
 
 async def create_token_jwt(user: UserAuth) -> TokenInfo:
-    payload = {
-        'sub': str(user.id),
-        'user': {
-            'username': user.username,
-            'email': user.email,
-            'is_active': user.is_active
-        }
-    }
-    token = auth_utils.encode_jwt(payload=payload)
+    
+    access_token = await create_access_token(user)
+    refresh_token = await create_refresh_token(user)
 
     return TokenInfo(
-        access_token=token
+        access_token=access_token,
+        refresh_token=refresh_token
     )
 
 
+async def refresh_token_jwt(user: UserAuth) -> TokenInfo:
+    
+    access_token = await create_access_token(user)
+
+    return TokenInfo(
+        access_token=access_token
+    )
