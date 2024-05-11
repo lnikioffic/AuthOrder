@@ -7,11 +7,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models import Base
 from src.order.models import Order
 from src.videoprocessor.models import UserDataSet
+from src.users.schemas import UserAuth
 
 
 class User(Base):
 
     __tablename__ = 'user'
+
+    __pydantic_model__ = UserAuth
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(length=50), unique=True)
