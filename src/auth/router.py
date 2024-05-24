@@ -42,19 +42,16 @@ async def auth_refresh_jwt(user: Annotated[UserRead, Depends(get_current_auth_us
     return ref
 
 
-@router.get('/me')
+@router.get('/me', response_model=UserRead)
 async def get_me(
     payload: Annotated[dict, Depends(get_current_token_payload)],
     me: Annotated[UserRead, Depends(get_current_active_auth_user)]
     ):
     iat =  payload.get("iat")
-    return {
-        'username': me.username,
-        'log': iat
-    }    
+    return me
 
 
-@router.get('/users', response_model=list[UserRead])
+@router.get('/users', response_model=UserRead)
 async def get_user(session: AsyncSession = Depends(db.get_session)):
     res = await service.get_user(session)
     return res
