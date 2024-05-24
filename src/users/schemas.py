@@ -20,7 +20,7 @@ class UserCreate(UserBase):
     hashed_password: str
 
 
-class UserAuth(UserRead):
+class UserLogin(UserRead):
     hashed_password: str
 
 

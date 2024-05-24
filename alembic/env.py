@@ -11,7 +11,7 @@ from src.models import Base
 from src.product.models import *
 from src.order.models import *
 from src.users.models import *
-from src.videoprocessor.models import *
+# from src.videoprocessor.models import *
 
 from src.config import settings
 

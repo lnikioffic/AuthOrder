@@ -3,24 +3,31 @@ from sqlalchemy.engine import Result
 from sqlalchemy import select
 from fastapi import Depends, HTTPException, status
 
-from src.users.schemas import UserAuth, UserRead
-from src.users.models import User
+from src.users.schemas import UserLogin, UserRead
+from src.users.service import ServiceUser
 from src.database import db
 
-class GetUser():
-    def __init__(self, session: AsyncSession = Depends(db.get_session)) -> None:
-        self.session = session
-        
-    async def get_user_for_username(self, username: str) -> UserAuth:
-        stmt = select(User).filter(User.username == username)
-        result: Result = await self.session.execute(stmt)
-        user = result.scalar()
-        return user
-    
 
-    async def get_user_for_id(self, id: int) -> UserRead:
-        stmt = select(User).filter(User.id == id)
-        result: Result = await self.session.execute(stmt)
-        user = result.scalar()
-        return user
+async def valid_user_username(user_name: str, service: ServiceUser) -> UserLogin:
+    user = await service.get_user_by_username(user_name)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User",
+        )
+        
+    return user
+
+
+async def valid_user_id(user_id: int, service: ServiceUser) -> UserRead | None:
+    # stmt = select(User).filter(User.id == id)
+    # result: Result = await self.session.execute(stmt)
+    # user = result.scalar()
+    user = await service.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User",
+        )
+    return user
  

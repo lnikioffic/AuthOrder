@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.users.schemas import UserCreate, UserRead, UserAuth
+from src.users.schemas import UserCreate, UserRead, UserLogin
 from src.auth.schemas import TokenInfo
 from src.auth.dependencies import (
     validate_auth_user, 
@@ -12,6 +12,7 @@ from src.auth.dependencies import (
     refresh_token_jwt,
     get_current_auth_user_for_refresh
 )
+from src.users.dependencies import valid_user_id
 from src.auth import service
 from src.database import db
 
@@ -58,3 +59,7 @@ async def get_user(session: AsyncSession = Depends(db.get_session)):
     res = await service.get_user(session)
     return res
 
+
+# @router.get('/user/{user_id}', response_model=UserRead)
+# async def get_user_id(user: Annotated[UserRead, Depends(valid_user_id)]):
+#     return user

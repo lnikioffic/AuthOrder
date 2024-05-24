@@ -18,7 +18,7 @@ class UserDataSet(Base):
     fromat: Mapped[str] = mapped_column(String(50))
     description: Mapped[str] = mapped_column(String(100))
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'))
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
 
     user: Mapped['User'] = relationship(
         back_populates='datasets'

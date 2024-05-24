@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 
-from src.users.dependencies import GetUser
-from src.users.schemas import UserAuth, UserRead
+from src.users.schemas import UserLogin, UserRead
 from src.auth.schemas import TokenInfo
 from src.auth import utils as auth_utils
 from src.auth.config import auth_jwt
@@ -35,7 +34,7 @@ async def create_token(
     )
 
 
-async def create_access_token(user: UserAuth) -> str:
+async def create_access_token(user: UserLogin) -> str:
     payload = {
         'sub': str(user.id),
         'user': {
@@ -52,7 +51,7 @@ async def create_access_token(user: UserAuth) -> str:
     )
 
 
-async def create_refresh_token(user: UserAuth) -> str:
+async def create_refresh_token(user: UserLogin) -> str:
     payload = {
         'sub': str(user.id),
         # 'user': {
